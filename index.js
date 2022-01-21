@@ -30,7 +30,7 @@ async function loginHeroku(email, password) {
   }
 }
 
-function herokuAction(herokuApiKey, herokuAppName, formation, action) {
+async function herokuAction(herokuApiKey, herokuAppName, formation, action) {
   try {
     await exec(
       `HEROKU_API_KEY=${herokuApiKey} heroku container:${action} ${formation} --app ${herokuAppName}`
@@ -66,10 +66,10 @@ async function buildPushAndDeploy() {
   await loginHeroku(herokuEmail, herokuApiKey);
 
   // pushing to heroku registery
-  herokuAction(herokuApiKey, herokuAppName, formation, "push");
+  await herokuAction(herokuApiKey, herokuAppName, formation, "push");
 
   // releasing the heroku app
-  herokuAction(herokuApiKey, herokuAppName, formation, "release");
+  await herokuAction(herokuApiKey, herokuAppName, formation, "release");
 }
 
 buildPushAndDeploy().catch((error) => {
