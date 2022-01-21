@@ -9,9 +9,18 @@ async function buildDockerImage(
 ) {
   try {
     console.log(`building docker image ...`);
-    const output = await exec(
-      `docker build -f ${dockerFilePath}/${dockerFileName} ${buildOptions} -t ${tag} .`
-    );
+    const output = await new Promise((resolve, reject) => {
+      exec(
+        `docker build -f ${dockerFilePath}/${dockerFileName} ${buildOptions} -t ${tag} .`,
+        (error, stdout, stderr) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(stdout);
+          }
+        }
+      );
+    });
     console.log(output);
     console.log(`Docker image built successfully`);
   } catch (error) {
@@ -22,9 +31,18 @@ async function buildDockerImage(
 async function loginHeroku(email, password) {
   try {
     console.log(`Logging in ...`);
-    const output = await exec(
-      `echo ${password} | docker login --username=${email} registry.heroku.com --password-stdin`
-    );
+    const output = await new Promise((resolve, reject) => {
+      exec(
+        `echo ${password} | docker login --username=${email} registry.heroku.com --password-stdin`,
+        (error, stdout, stderr) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(stdout);
+          }
+        }
+      );
+    });
     console.log(output);
     console.log(`Logged in successfully`);
   } catch (error) {
@@ -37,9 +55,18 @@ async function loginHeroku(email, password) {
 async function herokuAction(herokuApiKey, herokuAppName, formation, action) {
   try {
     console.log(`Performing heroku container action "${action}" ...`);
-    const output = await exec(
-      `HEROKU_API_KEY=${herokuApiKey} heroku container:${action} ${formation} --app ${herokuAppName}`
-    );
+    const output = await new Promise((resolve, reject) => {
+      exec(
+        `HEROKU_API_KEY=${herokuApiKey} heroku container:${action} ${formation} --app ${herokuAppName}`,
+        (error, stdout, stderr) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(stdout);
+          }
+        }
+      );
+    });
     console.log(output);
     console.log(`Performing heroku container action "${action}" succeeded`);
   } catch (error) {
