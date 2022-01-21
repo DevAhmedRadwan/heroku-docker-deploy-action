@@ -80,11 +80,11 @@ async function buildPushAndDeploy() {
   const herokuEmail = core.getInput("heroku_email");
   const herokuApiKey = core.getInput("heroku_api_key");
   const herokuAppName = core.getInput("heroku_app_name");
-  const formation = core.getInput("formation");
+  const formation = core.getInput("formation") || "web";
 
   const dockerFileName = core.getInput("dockerfile_name");
   const dockerFilePath = core.getInput("dockerfile_path");
-  const dockerOptions = core.getInput("docker_options");
+  const dockerOptions = core.getInput("docker_options") || "";
   const dockerTag = `registry.heroku.com/${herokuAppName}/${formation}`;
 
   // create a docker image
