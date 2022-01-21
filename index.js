@@ -8,10 +8,12 @@ async function buildDockerImage(
   tag
 ) {
   try {
-    await exec(
+    console.log(`building docker image ...`);
+    const output = await exec(
       `docker build -f ${dockerFilePath}/${dockerFileName} ${buildOptions} -t ${tag} .`
     );
-    console.log("Docker image built successfully");
+    console.log(output);
+    console.log(`Docker image built successfully`);
   } catch (error) {
     core.setFailed(`Docker image built failed. Error: ${error.message}`);
   }
@@ -19,10 +21,12 @@ async function buildDockerImage(
 
 async function loginHeroku(email, password) {
   try {
-    await exec(
+    console.log(`Logging in ...`);
+    const output = await exec(
       `echo ${password} | docker login --username=${email} registry.heroku.com --password-stdin`
     );
-    console.log("Logged in successfully");
+    console.log(output);
+    console.log(`Logged in successfully`);
   } catch (error) {
     core.setFailed(
       `Loggin in to heroku docker registry faild. Error: ${error.message}`
@@ -32,9 +36,11 @@ async function loginHeroku(email, password) {
 
 async function herokuAction(herokuApiKey, herokuAppName, formation, action) {
   try {
-    await exec(
+    console.log(`Performing heroku container action "${action}" ...`);
+    const output = await exec(
       `HEROKU_API_KEY=${herokuApiKey} heroku container:${action} ${formation} --app ${herokuAppName}`
     );
+    console.log(output);
     console.log(`Performing heroku container action "${action}" succeeded`);
   } catch (error) {
     core.setFailed(
