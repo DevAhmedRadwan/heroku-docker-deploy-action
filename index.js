@@ -30,6 +30,19 @@ async function loginHeroku(email, password) {
   }
 }
 
+function herokuAction(herokuApiKey, herokuAppName, formation, action) {
+  try {
+    await exec(
+      `HEROKU_API_KEY=${herokuApiKey} heroku container:${action} ${formation} --app ${herokuAppName}`
+    );
+    console.log(`Performing heroku container action "${action}" succeeded`);
+  } catch (error) {
+    core.setFailed(
+      `Performing heroku container action "${action}" faild. Error: ${error.message}`
+    );
+  }
+}
+
 async function buildPushAndDeploy() {
   const herokuEmail = core.getInput("heroku_email");
   const herokuApiKey = core.getInput("heroku_api_key");
@@ -39,7 +52,7 @@ async function buildPushAndDeploy() {
   const dockerFileName = core.getInput("dockerfile_name");
   const dockerFilePath = core.getInput("dockerfile_path");
   const dockerOptions = core.getInput("docker_options");
-  const dockerTag = `heroku-deploy-${herokuAppName}-${formation}`;
+  const dockerTag = `registry.heroku.com/${herokuAppName}/${formation}`;
 
   // create a docker image
   await buildDockerImage(
@@ -49,7 +62,14 @@ async function buildPushAndDeploy() {
     dockerTag
   );
 
+  // loging in to heroku registery
   await loginHeroku(herokuEmail, herokuApiKey);
+
+  // pushing to heroku registery
+  herokuAction(herokuApiKey, herokuAppName, formation, "push");
+
+  // releasing the heroku app
+  herokuAction(herokuApiKey, herokuAppName, formation, "release");
 }
 
 buildPushAndDeploy().catch((error) => {
