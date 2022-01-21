@@ -1,0 +1,29 @@
+name: heroku docker deploy
+description: it's an action to build and deploy a docker file to heroku
+inputs:
+  heroku_email:
+    description: "email linked to your heroku account"
+    required: true
+  heroku_api_key:
+    description: "your heroku api key"
+    required: true
+  heroku_app_name:
+    description: "your heroku app name"
+    required: true
+  formation:
+    description: "heroku dyno formation"
+    default: "web"
+    required: false
+  dockerfile_name:
+    description: "dokerfile name"
+    required: true
+  dockerfile_path:
+    description: "dokerfile path"
+    required: true
+  docker_options:
+    description: "optional build parameters"
+    default: ""
+    required: false
+runs:
+  using: "node12"
+  main: "index.js"
