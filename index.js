@@ -9,9 +9,13 @@ async function buildDockerImage(
 ) {
   try {
     console.log(`building docker image ...`);
+
+    let filePath = `${dockerFileName}`;
+    if (dockerFilePath != "") filePath = `${dockerFilePath}/${dockerFileName}`;
+
     const output = await new Promise((resolve, reject) => {
       exec(
-        `docker build -f ${dockerFilePath}/${dockerFileName} ${buildOptions} -t ${tag} .`,
+        `docker build -f ${filePath} ${buildOptions} -t ${tag} .`,
         (error, stdout, stderr) => {
           if (error) {
             reject(error);
@@ -47,12 +51,12 @@ async function pushDockerImage(tag) {
   }
 }
 
-async function loginHeroku(email, password) {
+async function releaseDockerImage(herokuApiKey, herokuAppName, formation) {
   try {
-    console.log(`Logging in ...`);
+    console.log(`Releasing pushed image ...`);
     const output = await new Promise((resolve, reject) => {
       exec(
-        `echo ${password} | docker login --username=${email} registry.heroku.com --password-stdin`,
+        `HEROKU_API_KEY=${herokuApiKey} heroku container:release ${formation} --app ${herokuAppName}`,
         (error, stdout, stderr) => {
           if (error) {
             reject(error);
@@ -63,35 +67,9 @@ async function loginHeroku(email, password) {
       );
     });
     console.log(output);
-    console.log(`Logged in successfully`);
+    console.log(`Pushed image released successfully`);
   } catch (error) {
-    core.setFailed(
-      `Loggin in to heroku docker registry faild. Error: ${error.message}`
-    );
-  }
-}
-
-async function herokuAction(herokuApiKey, herokuAppName, formation, action) {
-  try {
-    console.log(`Performing heroku container action "${action}" ...`);
-    const output = await new Promise((resolve, reject) => {
-      exec(
-        `HEROKU_API_KEY=${herokuApiKey} heroku container:${action} ${formation} --app ${herokuAppName}`,
-        (error, stdout, stderr) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(stdout);
-          }
-        }
-      );
-    });
-    console.log(output);
-    console.log(`Performing heroku container action "${action}" succeeded`);
-  } catch (error) {
-    core.setFailed(
-      `Performing heroku container action "${action}" faild. Error: ${error.message}`
-    );
+    core.setFailed(`Releasing pushed image faild. Error: ${error.message}`);
   }
 }
 
@@ -117,7 +95,7 @@ async function buildPushAndDeploy() {
   await pushDockerImage(dockerTag);
 
   // releasing the heroku app
-  await herokuAction(herokuApiKey, herokuAppName, formation, "release");
+  await releaseDockerImage(herokuApiKey, herokuAppName, formation);
 }
 
 buildPushAndDeploy().catch((error) => {
