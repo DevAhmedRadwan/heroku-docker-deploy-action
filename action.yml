@@ -1,9 +1,6 @@
 name: heroku docker deploy
 description: it's an action to build and deploy a docker file to heroku
 inputs:
-  heroku_email:
-    description: "email linked to your heroku account"
-    required: true
   heroku_api_key:
     description: "your heroku api key"
     required: true

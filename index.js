@@ -96,7 +96,6 @@ async function herokuAction(herokuApiKey, herokuAppName, formation, action) {
 }
 
 async function buildPushAndDeploy() {
-  const herokuEmail = core.getInput("heroku_email");
   const herokuApiKey = core.getInput("heroku_api_key");
   const herokuAppName = core.getInput("heroku_app_name");
   const formation = core.getInput("formation") || "web";
@@ -106,28 +105,6 @@ async function buildPushAndDeploy() {
   const dockerOptions = core.getInput("docker_options") || "";
   const dockerTag = `registry.heroku.com/${herokuAppName}/${formation}`;
 
-  console.log(
-    herokuEmail,
-    herokuApiKey,
-    herokuAppName,
-    formation,
-    dockerFileName,
-    dockerFilePath,
-    dockerOptions,
-    dockerTag
-  );
-  /*
-docker build -f dockerfile.prod -t registry.heroku.com/sync-api-r/web .
-docker push registry.heroku.com/sync-api-r/web
-HEROKU_API_KEY=46e97618-f1ce-49a5-8c63-f11504a6fd00 heroku container:release web --app sync-api-r
-
-
-docker build -f dockerfile.prod -t registry.heroku.com/sync-api-r/web .
-echo 46e97618-f1ce-49a5-8c63-f11504a6fd00 | docker login --username=devahmedradwan@gmail.com registry.heroku.com --password-stdin
-HEROKU_API_KEY=46e97618-f1ce-49a5-8c63-f11504a6fd00 heroku container:push web --app sync-api-r
-HEROKU_API_KEY=46e97618-f1ce-49a5-8c63-f11504a6fd00 heroku container:release web --app sync-api-r
-
-*/
   // create a docker image
   await buildDockerImage(
     dockerFilePath,
@@ -135,12 +112,6 @@ HEROKU_API_KEY=46e97618-f1ce-49a5-8c63-f11504a6fd00 heroku container:release web
     dockerOptions,
     dockerTag
   );
-
-  // loging in to heroku registery
-  // await loginHeroku(herokuEmail, herokuApiKey);
-
-  // pushing to heroku registery
-  //await herokuAction(herokuApiKey, herokuAppName, formation, "push");
 
   // pushing to image heroku registery
   await pushDockerImage(dockerTag);
