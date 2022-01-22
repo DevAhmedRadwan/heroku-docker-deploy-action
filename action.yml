@@ -15,11 +15,13 @@ inputs:
     default: "web"
     required: false
   dockerfile_name:
-    description: "dokerfile name"
-    required: true
+    description: "dockerfile name"
+    default: "dockerfile"
+    required: false
   dockerfile_path:
-    description: "dokerfile path"
-    required: true
+    description: "dockerfile path"
+    default: ""
+    required: false
   docker_options:
     description: "optional build parameters"
     default: ""

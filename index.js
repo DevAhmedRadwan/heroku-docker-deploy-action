@@ -28,6 +28,25 @@ async function buildDockerImage(
   }
 }
 
+async function pushDockerImage(tag) {
+  try {
+    console.log(`pushing docker image ...`);
+    const output = await new Promise((resolve, reject) => {
+      exec(`docker push ${tag}`, (error, stdout, stderr) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(stdout);
+        }
+      });
+    });
+    console.log(output);
+    console.log(`Docker image pushed successfully`);
+  } catch (error) {
+    core.setFailed(`Docker image pushing failed. Error: ${error.message}`);
+  }
+}
+
 async function loginHeroku(email, password) {
   try {
     console.log(`Logging in ...`);
@@ -82,11 +101,33 @@ async function buildPushAndDeploy() {
   const herokuAppName = core.getInput("heroku_app_name");
   const formation = core.getInput("formation") || "web";
 
-  const dockerFileName = core.getInput("dockerfile_name");
-  const dockerFilePath = core.getInput("dockerfile_path");
+  const dockerFileName = core.getInput("dockerfile_name") || "dockerfile";
+  const dockerFilePath = core.getInput("dockerfile_path") || "";
   const dockerOptions = core.getInput("docker_options") || "";
   const dockerTag = `registry.heroku.com/${herokuAppName}/${formation}`;
 
+  console.log(
+    herokuEmail,
+    herokuApiKey,
+    herokuAppName,
+    formation,
+    dockerFileName,
+    dockerFilePath,
+    dockerOptions,
+    dockerTag
+  );
+  /*
+docker build -f dockerfile.prod -t registry.heroku.com/sync-api-r/web .
+docker push registry.heroku.com/sync-api-r/web
+HEROKU_API_KEY=46e97618-f1ce-49a5-8c63-f11504a6fd00 heroku container:release web --app sync-api-r
+
+
+docker build -f dockerfile.prod -t registry.heroku.com/sync-api-r/web .
+echo 46e97618-f1ce-49a5-8c63-f11504a6fd00 | docker login --username=devahmedradwan@gmail.com registry.heroku.com --password-stdin
+HEROKU_API_KEY=46e97618-f1ce-49a5-8c63-f11504a6fd00 heroku container:push web --app sync-api-r
+HEROKU_API_KEY=46e97618-f1ce-49a5-8c63-f11504a6fd00 heroku container:release web --app sync-api-r
+
+*/
   // create a docker image
   await buildDockerImage(
     dockerFilePath,
@@ -96,10 +137,13 @@ async function buildPushAndDeploy() {
   );
 
   // loging in to heroku registery
-  await loginHeroku(herokuEmail, herokuApiKey);
+  // await loginHeroku(herokuEmail, herokuApiKey);
 
   // pushing to heroku registery
-  await herokuAction(herokuApiKey, herokuAppName, formation, "push");
+  //await herokuAction(herokuApiKey, herokuAppName, formation, "push");
+
+  // pushing to image heroku registery
+  await pushDockerImage(dockerTag);
 
   // releasing the heroku app
   await herokuAction(herokuApiKey, herokuAppName, formation, "release");
