@@ -32,7 +32,31 @@ async function buildDockerImage(
   }
 }
 
-async function pushDockerImage(tag) {
+async function loginToHerokuRegistry(email, password) {
+  try {
+    console.log(`Logging in ...`);
+    const output = await new Promise((resolve, reject) => {
+      exec(
+        `echo ${password} | docker login --username=${email} registry.heroku.com --password-stdin`,
+        (error, stdout, stderr) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(stdout);
+          }
+        }
+      );
+    });
+    console.log(output);
+    console.log(`Logged in successfully`);
+  } catch (error) {
+    core.setFailed(
+      `Loggin in to heroku docker registry faild. Error: ${error.message}`
+    );
+  }
+}
+
+async function pushImageToHerokuRegistry(tag) {
   try {
     console.log(`pushing docker image ...`);
     const output = await new Promise((resolve, reject) => {
@@ -51,7 +75,7 @@ async function pushDockerImage(tag) {
   }
 }
 
-async function releaseDockerImage(herokuApiKey, herokuAppName, formation) {
+async function releaseImage(herokuApiKey, herokuAppName, formation) {
   try {
     console.log(`Releasing pushed image ...`);
     const output = await new Promise((resolve, reject) => {
@@ -74,6 +98,7 @@ async function releaseDockerImage(herokuApiKey, herokuAppName, formation) {
 }
 
 async function buildPushAndDeploy() {
+  const herokuEmail = core.getInput("heroku_email");
   const herokuApiKey = core.getInput("heroku_api_key");
   const herokuAppName = core.getInput("heroku_app_name");
   const formation = core.getInput("formation") || "web";
@@ -91,11 +116,14 @@ async function buildPushAndDeploy() {
     dockerTag
   );
 
+  // loging in to heroku registery
+  await loginToHerokuRegistry(herokuEmail, herokuApiKey);
+
   // pushing to image heroku registery
-  await pushDockerImage(dockerTag);
+  await pushImageToHerokuRegistry(dockerTag);
 
   // releasing the heroku app
-  await releaseDockerImage(herokuApiKey, herokuAppName, formation);
+  await releaseImage(herokuApiKey, herokuAppName, formation);
 }
 
 buildPushAndDeploy().catch((error) => {
